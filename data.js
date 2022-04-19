@@ -31,20 +31,4 @@ const users = [
 ]
 
 
-
-
-// export default users;
-// TODO: module.exports = users
-
-// export const users = [
-// ]
-// TODO: module.exports = {
-//   users
-// }
-
-
-// import dataUSERS from "./user"
-// TODO: const dataUSERS = require("./user")
-
-// import {users} from "./user"
-// TODO: const {users} = require("./user")
+module.exports = users;

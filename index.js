@@ -1,74 +1,70 @@
 const express = require('express');
 
+const userData = require('./data')
+
 const app = express();
 
 
 app.use(express.json());
 
-app.get('/',(req,res) => {
-  res.send('<h1>Desde el servidor</h1>');
+app.get('/users',(req, res) => {
+  res.json(userData)
 })
 
-app.post('/',(req,res) => {
-  const usuario = "jose@email.com";
-  const password = "123456";
-
-  if(req.body.username !== usuario) {
-    return res.send('Usuario no encontrado')
-  }
-
-  if(req.body.password !== password) {
-    return res.send('Password incorrecto')
-  }
-
-  res.send('Usuario Logueado');
+app.get('/users/:id',(req,res) => {
+  const { id } = req.params;
+  const userFound = userData.find(user => user.id === id )
+  if(!userFound) return res.json({msg: `El usuario con id ${id} no existe`})
+  res.json({
+    msg: 'Usuario encontrado',
+    user: userFound
+  })
 })
 
-// http://localhost:4000/user
-// send --> "Usuario Actualizado"
-app.put('/user/:id',(req,res) => {
-  let nombre = "Jose";
-  let apellido = "Velasque";
-
-  nombre = req.body.name
-  apellido = req.body.apelllidos
-
-  res.send(`Usuario: ${nombre} ${apellido}`);
+app.post('/users/register',(req, res) => {
+  const id = String(userData.length + 1)
+  const newUser = {id,...req.body}
+  userData.push(newUser)
+  res.json(userData)
 })
 
-app.delete('/user/:id',(req,res) => {
-  const user = [
-    {
-      id: "1",
-      name: "Jose",
-      passwor: "123"
-    },
-    {
-      id: "2",
-      name: "Fernando",
-      passwor: "abc"
-    },
-  ]
+app.post('/users/login',(req, res) => {
+  const { email, password } = req.body
+  const userFound = userData.find(user => user.email === email )
+  if(!userFound) return res.json({msg:`El usuario con el email ${email} no existe`})
+  if(password !== userFound.password)  return res.json({msg:'El password es incorrecto' })
 
-  const userElminado = user.filter(u => u.id !== req.params.id)
-
-  res.send(userElminado)
+  res.json({msg: "Usuario Logueado"})
 })
+
+app.put('/users/:id',(req, res) => {
+  const {id} = req.params
+  const {name, password, apellidos,email} = req.body
+  const userFound = userData.find(user => user.id === id )
+  if(!userFound) return res.json({msg: `El usuario con id ${id} no existe`})
+
+  userFound.name = name || userFound.name
+  userFound.password = password || userFound.password 
+  userFound.apellidos = apellidos || userFound.apellidos
+  userFound.email = email || userFound.email
+
+  res.json({msg: "Usuario actualizado",user:userFound})
+})
+
+app.delete('/users/:id',(req, res) => {
+  const { id } = req.params
+  const userFound = userData.find(user => user.id === id )
+  if(!userFound) return res.json({msg: `El usuario con id ${id} no existe`})
+
+  const listUsersUpdated = userData.filter(user => user.id !== id)
+
+  res.json({
+    msg:`Usuario ${userFound.email} ha sido eliminado`,
+    users: listUsersUpdated
+  })
+})
+
 
 app.listen(4000,() => {
   console.log('Servidor escuchando el puerto 4000');
 })
-
-// http://localhost:4000
-// http://localhost:4000/user
-// http://localhost:4000/categoria
-
-/* 
-  TAREA:
-  1. Crear una API REST con Express
-  2. Crear AUTENTICACION
-  3. GET --> LISTENME LOS USUARIOS
-  4. POST --> CREAR UN USUARIO
-  5. PUT --> ACTUALIZAR UN USUARIO
-  6. DELETE --> ELIMINAR UN USUARIO
-*/
